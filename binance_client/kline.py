@@ -30,6 +30,9 @@ def get_kline(symbol='BTCUSDT', interval=Client.KLINE_INTERVAL_5MINUTE, start_st
       ]
     ]
     """
+    if end_str:
+        end_str = str(end_str)
+    start_str = str(start_str)
     client = get_binance_client()
     return [kline for kline in client.get_historical_klines_generator(symbol, interval, start_str, end_str)]
 
@@ -39,12 +42,15 @@ def get_kline_dataframe(symbol='BTCUSDT',
                         from_str='24 hours ago UTC',
                         to_str=None):
     client = get_binance_client()
+    if to_str:
+        to_str = str(to_str)
+    from_str = str(from_str)
     klines = [kline for kline in client.get_historical_klines_generator(symbol, interval, from_str, to_str)]
     labels = ['open_time', 'open', 'high', 'low', 'close', 'volume', 'close_time',
               'quote_asset_volume', 'number_of_trades', 'base_asset_volume', 'quote_asset_volume', 'ignore']
     df = pd.DataFrame.from_records(klines, columns=labels)
 
-    df.astype({"open": np.float16, "high": np.float16, "low": np.float16, "close": np.float16})
+    df = df.astype({"open": np.float64, "high": np.float64, "low": np.float64, "close": np.float64})
     df['open_time'] = pd.to_datetime(df['open_time'], unit='ms')
     df['close_time'] = pd.to_datetime(df['close_time'], unit='ms')
     return df

@@ -8,7 +8,7 @@ from binance.client import Client
 
 from binance_client.constants import get_timeframe_name
 from binance_client.kline import get_kline_dataframe
-from event.event import SignalEvent, SignalAction, TimeFrameEvent, OrderHoldingEvent, StartUpEvent
+from event.event import SignalEvent, SignalAction, TimeFrameEvent
 from binance_client import constants
 from signals.divergence import check_long_divergence, check_short_divergence
 from strategy.base import StrategyBase
@@ -26,8 +26,7 @@ class RSIDivStrategy(StrategyBase):
     magic_number = '20201005'
     source = 'https://www.babypips.com/trading/forex-hlhb-system-20190128'
 
-    timeframes = (constants.PERIOD_M1,
-                  constants.PERIOD_M5,
+    timeframes = (constants.PERIOD_M5,
                   constants.PERIOD_M15,
                   constants.PERIOD_M30,
                   constants.PERIOD_H1,
