@@ -4,6 +4,7 @@ from queue import Queue
 import talib
 from datetime import datetime
 
+from antman.telstra import send_to_admin
 from binance.client import Client
 
 from binance_client.constants import get_timeframe_name
@@ -34,7 +35,7 @@ class RSIDivStrategy(StrategyBase):
                   constants.PERIOD_D1)
 
     subscription = [TimeFrameEvent.type]
-    symbols = ('BTCUSDT',)  # 'ETHUSDT'
+    symbols = ('BTCUSDT', 'ETHUSDT')  # 'ETHUSDT'
 
     def signal_symbol(self, symbol, event):
         to_datetime = datetime.utcnow()
@@ -56,17 +57,25 @@ class RSIDivStrategy(StrategyBase):
         if long_start_indexes or short_start_indexes:
             print(datetime.now())
         if long_start_indexes:
-            print(symbol, 'LONG', event.timeframe, long_start_indexes, short_start_indexes)
             from_index = long_start_indexes[0]
             to_index = len(df) - 3
-            print(
-                f'{(df.loc[from_index].open_time,df.loc[from_index].candle_low,df.loc[from_index].rsi13)} -> ({(df.loc[to_index].open_time,df.loc[to_index].candle_low,df.loc[to_index].rsi13)})')
+            msg = f'''{symbol},{event.timeframe},RSI-DIV,LONG
+{df.loc[from_index].open_time.strftime('%H:%M')}    > {df.loc[to_index].open_time.strftime('%H:%M')}
+{df.loc[from_index].candle_low} \ {df.loc[to_index].candle_low}
+{df.loc[from_index].rsi13:.2f}    / {df.loc[to_index].rsi13:.2f}
+'''
+            print(msg)
+            send_to_admin(msg)
         if short_start_indexes:
-            print(symbol, 'SHORT', event.timeframe, short_start_indexes)
             from_index = short_start_indexes[0]
             to_index = len(df) - 3
-            print(
-                f'{(df.loc[from_index].open_time,df.loc[from_index].candle_high,df.loc[from_index].rsi13)} -> ({(df.loc[to_index].open_time,df.loc[to_index].candle_high,df.loc[to_index].rsi13)})')
+            msg = f'''{symbol},{event.timeframe},RSI-DIV,LONG
+{df.loc[from_index].open_time.strftime('%H:%M')}    > {df.loc[to_index].open_time.strftime('%H:%M')}
+{df.loc[from_index].candle_high} / {df.loc[to_index].candle_high}
+{df.loc[from_index].rsi13:.2f}    \ {df.loc[to_index].rsi13:.2f}
+'''
+            print(msg)
+            send_to_admin(msg)
 
 
 if __name__ == '__main__':
