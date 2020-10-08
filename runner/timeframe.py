@@ -63,9 +63,8 @@ class TimeframePublisher:
                 newest_time = get_candle_time(now, timeframe)
                 if self._candle_times[timeframe] != newest_time:
                     new_timeframes.append(timeframe)
-                    # print(timeframe,self.candle_time[timeframe], new)
                     self._candle_times[timeframe] = newest_time
-            #
+
             if new_timeframes:
                 event = TimeFrameEvent(new_timeframes,
                                        newest_time,
@@ -73,7 +72,6 @@ class TimeframePublisher:
                                        self.timezone,
                                        now)
                 self.publish_method(event)
-                print(self._candle_times[new_timeframes[0]], new_timeframes)
 
             time.sleep(1)
         print('HeartbeatPublisher stopped.')

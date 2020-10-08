@@ -59,7 +59,7 @@ class RSIDivStrategy(StrategyBase):
             newest_index, short_start_indexes = check_short_divergence(df["candle_high"], df["rsi13"])
 
             if long_start_indexes or short_start_indexes:
-                msg_title=f'{datetime.now().strftime("%H:%M")},{symbol},{timeframe},{self.name}'
+                msg_title = f'{datetime.now().strftime("%H:%M")},{symbol},{timeframe},{self.name}'
             else:
                 return
 
