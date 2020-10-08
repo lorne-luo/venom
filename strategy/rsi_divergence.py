@@ -44,7 +44,7 @@ class RSIDivStrategy(StrategyBase):
             if timeframe not in self.timeframes:
                 continue
 
-            delta = calculate_time_delta(timeframe, 60)
+            delta = calculate_time_delta(timeframe, 55)
             from_datetime = to_datetime - delta
             from_timestamp = from_datetime.timestamp()
             timeframe_name = get_timeframe_name(timeframe)
@@ -59,11 +59,14 @@ class RSIDivStrategy(StrategyBase):
             newest_index, short_start_indexes = check_short_divergence(df["candle_high"], df["rsi13"])
 
             if long_start_indexes or short_start_indexes:
-                print(datetime.now())
+                msg_title=f'{datetime.now().strftime("%H:%M")},{symbol},{timeframe},{self.name}'
+            else:
+                return
+
             if long_start_indexes:
                 from_index = long_start_indexes[0]
                 to_index = len(df) - 3
-                msg = f'''{symbol},{timeframe},RSI-DIV,LONG
+                msg = f'''{msg_title},LONG
 {df.loc[from_index].open_time.strftime('%H:%M')}    > {df.loc[to_index].open_time.strftime('%H:%M')}
 {df.loc[from_index].candle_low} \ {df.loc[to_index].candle_low}
 {df.loc[from_index].rsi13:.2f}    / {df.loc[to_index].rsi13:.2f}
@@ -73,7 +76,7 @@ class RSIDivStrategy(StrategyBase):
             if short_start_indexes:
                 from_index = short_start_indexes[0]
                 to_index = len(df) - 3
-                msg = f'''{symbol},{event.timeframe},RSI-DIV,LONG
+                msg = f'''{msg_title},SHORT
 {df.loc[from_index].open_time.strftime('%H:%M')}    > {df.loc[to_index].open_time.strftime('%H:%M')}
 {df.loc[from_index].candle_high} / {df.loc[to_index].candle_high}
 {df.loc[from_index].rsi13:.2f}    \ {df.loc[to_index].rsi13:.2f}

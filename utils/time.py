@@ -41,17 +41,16 @@ def timestamp_to_str(timestamp, datetime_fmt="%Y/%m/%d %H:%M:%S:%f"):
 
 def calculate_time_delta(interval, count):
     number = int(interval)
-    k_count = number * (count + 1)
     if interval in [constants.PERIOD_M1, constants.PERIOD_M5, constants.PERIOD_M15, constants.PERIOD_M30]:
-        return timedelta(minutes=k_count)
+        return timedelta(minutes=count)
     elif interval in [constants.PERIOD_H1, constants.PERIOD_H4]:
-        return timedelta(hours=k_count)
+        return timedelta(hours=count)
     elif interval == constants.PERIOD_D1:
-        return timedelta(days=k_count)
+        return timedelta(days=count)
     elif interval == constants.PERIOD_W1:
-        return timedelta(days=7 * k_count)
+        return timedelta(days=7 * count)
     elif interval == constants.PERIOD_W1:
-        return timedelta(days=31 * k_count)
+        return timedelta(days=31 * count)
 
 
 def get_candle_time(time, timeframe):

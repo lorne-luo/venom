@@ -71,8 +71,15 @@ def check_price_cross(direction, prices):
     count = len(prices)
     slope = (prices[-1] - prices[0]) / (count - 1)
 
-    for i in range(1, count - 1):
-        compare_value = slope * i+prices[0]
+    if direction == SignalDirection.LONG:
+        if prices[0] > prices[1] or prices[count - 3] < prices[-1]:
+            return True
+    elif direction == SignalDirection.SHORT:
+        if prices[0] < prices[1] or prices[count - 3] > prices[-1]:
+            return True
+
+    for i in range(2, count - 2):
+        compare_value = slope * i + prices[0]
         if direction == SignalDirection.LONG:
             if prices[i] < compare_value:
                 return True
