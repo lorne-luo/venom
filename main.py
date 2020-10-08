@@ -42,13 +42,14 @@ import settings
 #                                     heartbeat_handler, price_alert, trade_manage])
 # runner.run()
 from event.handler import DebugHandler, TimeFrameTicker, PriceAlertHandler
+from runner.queue.memory_queue import put_msg, get_msg
 
-from runner.heartbeat import HeartbeatRunner
+from runner.timeframe import TimeframeRunner
 from strategy.rsi_divergence import RSIDivStrategy
 
 q = Queue(maxsize=2000)
-d = DebugHandler(q)
-t = TimeFrameTicker(q)
+# d = DebugHandler(q)
+# t = TimeFrameTicker(q)
 s = RSIDivStrategy(q)
-r = HeartbeatRunner(q, 1, *[t, s])
+r = TimeframeRunner(put_msg, get_msg, 1, *[s])
 r.run()
