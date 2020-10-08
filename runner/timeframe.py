@@ -113,8 +113,6 @@ class TimeframeRunner(BaseRunner):
                 if settings.DEBUG:
                     logger.debug(
                         f"New {event.type} Event: {event.__dict__ if event.type !=EventType.HEARTBEAT else ''}")
-                if event.type == EventType.TIMEFRAME:
-                    print(f"New timeframe: {event.time} {event.timeframes} ")
 
                 self.handle_event(event)
 
