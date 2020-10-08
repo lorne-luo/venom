@@ -1,14 +1,18 @@
+import logging
 from decimal import Decimal
 from environs import Env
 from binance_client import constants
+logger = logging.getLogger(__name__)
 
 env = Env()
-
 env.read_env('.env')
 
 DEBUG = env.bool('DEBUG', True)
 LOG_LEVEL = env.log_level("LOG_LEVEL")
 
+if not DEBUG:
+    sys.stderr.write = logger.error
+    sys.stdout.write = logger.info
 # ------------------------------ BINANCE --------------------------------
 BINANCE_API_KEY = env.str('BINANCE_API_KEY')
 

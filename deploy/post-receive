@@ -13,6 +13,6 @@ do
         sudo chown luotao /home/luotao/venv/venom -R
         sudo chown luotao /opt/venom -R
 
-        sudo supervisorctl restart venom
+        # sudo supervisorctl restart venom
     fi
 done
