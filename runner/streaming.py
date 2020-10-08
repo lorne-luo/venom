@@ -1,7 +1,7 @@
-from .base import Runner
+from .base import BaseRunner
 
 
-class StreamRunnerBase(Runner):
+class StreamRunnerBase(BaseRunner):
     broker = ''
     account = None
 

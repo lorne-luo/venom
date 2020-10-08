@@ -1,17 +1,28 @@
 import logging
 import sys
 import traceback
+from abc import abstractmethod
 
-from event.handler import BaseHandler, QueueBase
+from .handlers import BaseHandler
 
 logger = logging.getLogger(__name__)
 
 
-class Runner(QueueBase):
+class BaseRunner:
     loop_counter = 0
     handlers = []
     running = True
     initialized = False
+
+    def __init__(self, enqueue, dequeue):
+        self._enqueue = enqueue
+        self._dequeue = dequeue
+
+    def put(self, event):
+        return self._enqueue(event)
+
+    def get(self):
+        return self._dequeue()
 
     def run(self):
         raise NotImplementedError
@@ -19,22 +30,23 @@ class Runner(QueueBase):
     def register(self, *args):
         for handler in args:
             if isinstance(handler, BaseHandler):
-                handler.set_queue(self.queue)
+                # todo register runner as context
+                handler.set_context(self)
                 self.handlers.append(handler)
 
     def handle_event(self, event):
         """loop handlers to process event"""
         re_put = False
         for handler in self.handlers:
-            if '*' in handler.subscription:
+            if '*' in handler.subscribes:
                 result = self.process_event(handler, event)
                 re_put = result or re_put
                 continue
-            elif event.type in handler.subscription:
+            elif event.type in handler.subscribes:
                 result = self.process_event(handler, event)
                 re_put = result or re_put
         if re_put:
-            if event.tried > 10:
+            if event.tried > 3:
                 logger.error('[EVENT_RETRY] tried to many times abort, event=%s' % event)
             else:
                 event.tried += 1
@@ -52,13 +64,13 @@ class Runner(QueueBase):
                 logger.error(item.strip())
             self.handle_error(ex)
 
+    @abstractmethod
     def handle_error(self, ex):
-        pass
+        ...
 
     def print(self):
         print(self.handlers)
 
     def stop(self):
-        del self.queue
         self.running = False
         sys.exit(0)
