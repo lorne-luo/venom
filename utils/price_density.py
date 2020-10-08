@@ -178,7 +178,7 @@ def price_density_one_month(symbol, account=None, to_plotly=False):
 
 
 class PriceDensityHandler(BaseHandler):
-    subscription = [TimeFrameEvent.type]
+    subscribes = [TimeFrameEvent.type]
     pairs = []
 
     def __init__(self, queue=None, account=None, pairs=None):
@@ -187,7 +187,7 @@ class PriceDensityHandler(BaseHandler):
         self.account = account
 
     def process(self, event):
-        if event.timeframe != PERIOD_D1:
+        if PERIOD_D1 not in event.timeframes:
             return
 
         for symbol in self.pairs:

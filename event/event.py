@@ -98,11 +98,17 @@ class DebugEvent(Event):
 
 
 class TimeFrameEvent(Event):
+    """
+    timeframe={
+    1:2020-10-05 23:23:00
+    5:2020-10-05 23:25:00
+    }
+    """
     type = EventType.TIMEFRAME
 
-    def __init__(self, timeframe, current_time, previous, timezone, time):
+    def __init__(self, timeframes, current_time, previous, timezone, time):
         super(TimeFrameEvent, self).__init__()
-        self.timeframe = timeframe
+        self.timeframes = timeframes if isinstance(timeframes, (list, tuple, set)) else (timeframes,)
         self.current_time = current_time
         self.previous = previous
         self.timezone = timezone

@@ -38,8 +38,6 @@ def test_check_divergence_with_real_case():
 
     rsi13 = talib.RSI(np.array(low_prices), timeperiod=13)
     result = check_divergence(low_prices, rsi13)
-    print('################')
-    print(result)
 
     for k in low_prices:
         print(k)

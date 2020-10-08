@@ -47,21 +47,24 @@ class QueueBase(object):
 
 
 class BaseHandler(QueueBase):
-    subscription = ()
+    subscribes = ()
     account = None
+
+    def __init__(self, context):
+        self._context = context
 
     def process(self, event):
         raise NotImplementedError
 
 
 class DebugHandler(BaseHandler):
-    subscription = [DebugEvent.type]
+    subscribes = [DebugEvent.type]
 
     def __init__(self, queue, account=None, events=None, *args, **kwargs):
         super(DebugHandler, self).__init__(queue)
-        self.subscription = events or []
-        if DebugEvent.type not in self.subscription:
-            self.subscription.append(DebugEvent.type)
+        self.subscribes = events or []
+        if DebugEvent.type not in self.subscribes:
+            self.subscribes.append(DebugEvent.type)
         self.account = account
 
     def process(self, event):
@@ -87,7 +90,7 @@ class EventLoggerHandler(DebugHandler):
 
 
 class TickPriceHandler(BaseHandler):
-    subscription = [TickPriceEvent.type]
+    subscribes = [TickPriceEvent.type]
 
     def process(self, event):
         if settings.DEBUG:
@@ -97,7 +100,7 @@ class TickPriceHandler(BaseHandler):
 
 
 class HeartBeatHandler(BaseHandler):
-    subscription = [HeartBeatEvent.type]
+    subscribes = [HeartBeatEvent.type]
 
     def process(self, event):
         if not event.counter % (settings.HEARTBEAT / settings.LOOP_SLEEP):
@@ -114,7 +117,7 @@ class HeartBeatHandler(BaseHandler):
 
 
 class TimeFrameTicker(BaseHandler):
-    subscription = [HeartBeatEvent.type, TickPriceEvent.type]
+    subscribes = [HeartBeatEvent.type, TickPriceEvent.type]
     candle_time = {}
     market_open = False
     timezone = 0
@@ -137,17 +140,20 @@ class TimeFrameTicker(BaseHandler):
 
     def process(self, event):
         now = self.get_now()
+        new_timeframes=[]
+
         for timeframe in constants.PERIOD_CHOICES:
             new = get_candle_time(now, timeframe)
             if self.candle_time[timeframe] != new:
-                event = TimeFrameEvent(timeframe, new, self.candle_time[timeframe], self.timezone, now)
-                self.put(event)
+                new_timeframes.append(timeframe)
                 # print(timeframe,self.candle_time[timeframe], new)
                 self.candle_time[timeframe] = new
-
+        if new_timeframes:
+            event = TimeFrameEvent(new_timeframes, new, self.candle_time[timeframe], self.timezone, now)
+            self.put(event)
 
 class PriceAlertHandler(BaseHandler):
-    subscription = [TickPriceEvent.type, TimeFrameEvent.type, HeartBeatEvent.type]
+    subscribes = [TickPriceEvent.type, TimeFrameEvent.type, HeartBeatEvent.type]
     resistance_suffix = ['R1', 'R2', 'R3', 'R']
     support_suffix = ['S1', 'S2', 'S3', 'S']
     instruments = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'AUDUSD', 'NZDUSD', 'XAUUSD']
@@ -164,7 +170,7 @@ class PriceAlertHandler(BaseHandler):
             if event.instrument in self.instruments:
                 self.price_alert(event)
         elif event.type == TimeFrameEvent.type:
-            if event.timeframe == constants.PERIOD_D1:
+            if constants.PERIOD_D1 in event.timeframes:
                 self.reset_rs(event)
         elif event.type == HeartBeatEvent.type:
             if not event.counter % (settings.HEARTBEAT / settings.LOOP_SLEEP):
@@ -222,7 +228,7 @@ class PriceAlertHandler(BaseHandler):
 
 
 class TelegramHandler(BaseHandler):
-    subscription = [TradeOpenEvent.type, TradeCloseEvent.type]
+    subscribes = [TradeOpenEvent.type, TradeCloseEvent.type]
 
     def process(self, event):
         # tg.send_me(event.to_text())

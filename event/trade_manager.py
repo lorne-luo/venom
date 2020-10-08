@@ -17,7 +17,7 @@ TRADES_KEY = 'TRADES'
 
 
 class TradeManageHandler(BaseHandler):
-    subscription = [TickPriceEvent.type,
+    subscribes = [TickPriceEvent.type,
                     TradeOpenEvent.type,
                     TradeCloseEvent.type,
                     MarketEvent.type,

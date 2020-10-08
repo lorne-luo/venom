@@ -30,7 +30,7 @@ class HLHBTrendStrategy(StrategyBase):
     weekdays = [0, 1, 2, 3, 4]
     hours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]  # GMT hour
 
-    subscription = [TimeFrameEvent.type, OrderHoldingEvent.type, StartUpEvent.type]
+    subscribes = [TimeFrameEvent.type, OrderHoldingEvent.type, StartUpEvent.type]
 
     pairs = ['EURUSD', 'GBPUSD', 'USDJPY', 'USDCHF', 'USDCAD', 'AUDUSD', 'NZDUSD']
     params = {'short_ema': 5,
