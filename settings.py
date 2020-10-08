@@ -1,4 +1,5 @@
 import logging
+import sys
 from decimal import Decimal
 from environs import Env
 from binance_client import constants
