@@ -59,7 +59,8 @@ class RSIDivStrategy(StrategyBase):
             newest_index, short_start_indexes = check_short_divergence(df["candle_high"], df["rsi13"])
 
             if long_start_indexes or short_start_indexes:
-                msg_title = f'{datetime.now().strftime("%H:%M")},{symbol},{timeframe},{self.name}'
+                newest_price = df.loc[len(df) - 1].close
+                msg_title = f'{datetime.now().strftime("%H:%M")},{symbol},{timeframe},{self.name},{newest_price}'
             else:
                 return
 
@@ -67,7 +68,7 @@ class RSIDivStrategy(StrategyBase):
                 from_index = long_start_indexes[0]
                 to_index = len(df) - 3
                 msg = f'''{msg_title},LONG
-{df.loc[from_index].open_time.strftime('%H:%M')}    > {df.loc[to_index].open_time.strftime('%H:%M')}
+{df.loc[from_index].open_time.strftime('%m-%d %H:%M')} > {df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
 {df.loc[from_index].candle_low} \ {df.loc[to_index].candle_low}
 {df.loc[from_index].rsi13:.2f}    / {df.loc[to_index].rsi13:.2f}
     '''
@@ -77,7 +78,7 @@ class RSIDivStrategy(StrategyBase):
                 from_index = short_start_indexes[0]
                 to_index = len(df) - 3
                 msg = f'''{msg_title},SHORT
-{df.loc[from_index].open_time.strftime('%H:%M')}    > {df.loc[to_index].open_time.strftime('%H:%M')}
+{df.loc[from_index].open_time.strftime('%m-%d %H:%M')} > {df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
 {df.loc[from_index].candle_high} / {df.loc[to_index].candle_high}
 {df.loc[from_index].rsi13:.2f}    \ {df.loc[to_index].rsi13:.2f}
     '''
