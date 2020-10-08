@@ -27,7 +27,7 @@ class RSIDivStrategy(StrategyBase):
     magic_number = '20201005'
     source = 'https://www.babypips.com/trading/forex-hlhb-system-20190128'
 
-    timeframes = {constants.PERIOD_M1,constants.PERIOD_M5,
+    timeframes = {constants.PERIOD_M5,
                   constants.PERIOD_M15,
                   constants.PERIOD_M30,
                   constants.PERIOD_H1,
@@ -41,7 +41,9 @@ class RSIDivStrategy(StrategyBase):
         to_datetime = datetime.utcnow()
         to_timestamp = to_datetime.timestamp()
         for timeframe in event.timeframes:
-            print(f'{symbol}, {timeframe}##############2')
+            if timeframe not in self.timeframes:
+                continue
+
             delta = calculate_time_delta(timeframe, 60)
             from_datetime = to_datetime - delta
             from_timestamp = from_datetime.timestamp()
