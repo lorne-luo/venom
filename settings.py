@@ -8,6 +8,8 @@ env.read_env('.env')
 DEBUG = env.bool('DEBUG', True)
 LOG_LEVEL = env.log_level("LOG_LEVEL")
 
+TIMEZONE = 0
+
 # ------------------------------ BINANCE --------------------------------
 BINANCE_API_KEY = env.str('BINANCE_API_KEY')
 

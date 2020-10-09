@@ -7,7 +7,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta, MO
 
 from binance_client import constants
-from utils.time import get_candle_time
+from utils.time import get_candle_time, get_now
 
 import settings
 
@@ -25,7 +25,7 @@ class TimeframePublisher:
     name = 'TimeframePublisher'
     heartbeat = None
     heartbeat_counter = 0
-    timezone = 0
+    timezone = settings.TIMEZONE
     TIMEFRAME_CHOICES = sorted(constants.PERIOD_CHOICES, reverse=True)
 
     def __init__(self, publish_method, heartbeat=None):
@@ -36,17 +36,13 @@ class TimeframePublisher:
         self._active = False
 
         self._candle_times = {}
-        now = self._get_now()
+        now = get_now(self.timezone)
         for timeframe in self.TIMEFRAME_CHOICES:
             self._candle_times[timeframe] = get_candle_time(now, timeframe)
 
-    def _get_now(self):
-        now = datetime.utcnow() + relativedelta(hours=self.timezone)
-        return now
-
     def run(self):
         while self._active:
-            now = self._get_now()
+            now = get_now(self.timezone)
             timestamp = int(now.timestamp())
 
             # heart beat

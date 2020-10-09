@@ -7,13 +7,14 @@ from datetime import datetime
 from antman.telstra import send_to_admin
 from binance.client import Client
 
+import settings
 from binance_client.constants import get_timeframe_name
 from binance_client.kline import get_kline_dataframe
 from event.event import SignalEvent, SignalAction, TimeFrameEvent
 from binance_client import constants
 from signals.divergence import check_long_divergence, check_short_divergence
 from strategy.base import StrategyBase
-from utils.time import calculate_time_delta
+from utils.time import calculate_time_delta, get_candle_time, get_now
 
 logger = logging.getLogger(__name__)
 
@@ -27,21 +28,34 @@ class RSIDivStrategy(StrategyBase):
     magic_number = '20201005'
     source = 'https://www.babypips.com/trading/forex-hlhb-system-20190128'
 
-    timeframes = {constants.PERIOD_M5,
-                  constants.PERIOD_M15,
-                  constants.PERIOD_M30,
-                  constants.PERIOD_H1,
-                  constants.PERIOD_H4,
-                  constants.PERIOD_D1}
+    timeframes = sorted((constants.PERIOD_M30,
+                         constants.PERIOD_H1,
+                         constants.PERIOD_H4,
+                         constants.PERIOD_D1),
+                        reverse=True)
 
     subscribes = [TimeFrameEvent.type]
-    symbols = ('BTCUSDT', 'ETHUSDT')  # 'ETHUSDT'
+    symbols = ('BTCUSDT', 'ETHUSDT')
+
+    def check_run_history(self, symbol, timeframe, now):
+        """True already run ,skip
+        False doesnt run, go ahead"""
+        candle_time = get_candle_time(now, timeframe)
+        if self._candle_times[symbol][timeframe] >= candle_time:
+            return True
+        return False
 
     def signal_symbol(self, symbol, event):
         to_datetime = datetime.utcnow()
         to_timestamp = to_datetime.timestamp()
-        for timeframe in event.timeframes:
-            if timeframe not in self.timeframes:
+
+        now = get_now(settings.TIMEZONE)
+
+        for timeframe in self.timeframes:
+            candle_time = get_candle_time(now, timeframe)
+            if self.check_run_history(symbol, timeframe, now):
+                # processed
+                # print(f'########## {timeframe}.{candle_time} already run skip')
                 continue
 
             delta = calculate_time_delta(timeframe, 55)

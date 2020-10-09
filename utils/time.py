@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from dateparser import parse
 from dateutil.relativedelta import relativedelta, MO
 
+import settings
 from settings import constants
 from utils.string import extract_number
 
@@ -43,7 +44,7 @@ def calculate_time_delta(interval, count):
     if interval in [constants.PERIOD_M1, constants.PERIOD_M5, constants.PERIOD_M15, constants.PERIOD_M30]:
         return timedelta(minutes=interval * count)
     elif interval in [constants.PERIOD_H1, constants.PERIOD_H4]:
-        return timedelta(minutes=interval*count)
+        return timedelta(minutes=interval * count)
     elif interval == constants.PERIOD_D1:
         return timedelta(days=count)
     elif interval == constants.PERIOD_W1:
@@ -77,3 +78,9 @@ def get_candle_time(time, timeframe):
         return t.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
     raise NotImplementedError
+
+
+def get_now(timezone=None):
+    timezone = timezone or settings.TIMEZONE
+    now = datetime.utcnow() + relativedelta(hours=timezone)
+    return now
