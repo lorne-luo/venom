@@ -6,7 +6,7 @@ from scipy.signal import argrelmin, argrelmax
 from binance_client.constants import OrderSide, SignalDirection
 
 
-def check_short_divergence(prices, indicators):
+def short_reversal_divergence(prices, indicators):
     """
     :return:  direction, len(prices) - 3, [33,34]
     """
@@ -34,7 +34,7 @@ def check_short_divergence(prices, indicators):
     return price_compare_index, start_indexes
 
 
-def check_long_divergence(prices, indicators):
+def long_reversal_divergence(prices, indicators):
     """
     :return:  direction, len(prices) - 3, [33,34]
     """

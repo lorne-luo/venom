@@ -7,7 +7,7 @@ from binance.client import Client
 from binance_client.configs import get_binance_client
 from binance_client.constants import SignalDirection
 from binance_client.kline import get_kline_dataframe
-from signals.divergence import check_long_divergence, check_short_divergence
+from signals.divergence import long_reversal_divergence, short_reversal_divergence
 from utils.string import extract_number
 from utils.time import calculate_time_delta
 
@@ -58,9 +58,9 @@ def check_symbol_divergence(symbol, interval, count, to_datetime=None):
     df["candle_high"] = df[["open", "close"]].max(axis=1)
     df["rsi13"] = talib.RSI(df['close'], timeperiod=13)
 
-    newest_index, long_start_indexes = check_long_divergence(df["candle_low"], df["rsi13"])
+    newest_index, long_start_indexes = long_reversal_divergence(df["candle_low"], df["rsi13"])
 
-    newest_index, short_start_indexes = check_short_divergence(df["candle_high"], df["rsi13"])
+    newest_index, short_start_indexes = short_reversal_divergence(df["candle_high"], df["rsi13"])
 
     if long_start_indexes and not short_start_indexes:
         pass

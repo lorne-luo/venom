@@ -12,7 +12,7 @@ from binance_client.constants import get_timeframe_name
 from binance_client.kline import get_kline_dataframe
 from event.event import SignalEvent, SignalAction, TimeFrameEvent
 from binance_client import constants
-from signals.divergence import check_long_divergence, check_short_divergence
+from signals.divergence import long_reversal_divergence, short_reversal_divergence
 from strategy.base import StrategyBase
 from utils.time import calculate_time_delta, get_candle_time, get_now
 
@@ -68,9 +68,12 @@ class RSIDivStrategy(StrategyBase):
             df["candle_high"] = df[["open", "close"]].max(axis=1)
             df["rsi13"] = talib.RSI(df['close'], timeperiod=13)
 
-            newest_index, long_start_indexes = check_long_divergence(df["candle_low"], df["rsi13"])
+            newest_index, long_start_indexes = long_reversal_divergence(df["candle_low"], df["rsi13"])
 
-            newest_index, short_start_indexes = check_short_divergence(df["candle_high"], df["rsi13"])
+            newest_index, short_start_indexes = short_reversal_divergence(df["candle_high"], df["rsi13"])
+
+            # print(from_datetime, to_datetime)
+            # print(newest_index, long_start_indexes, short_start_indexes)
 
             if long_start_indexes or short_start_indexes:
                 newest_price = df.loc[len(df) - 1].close
