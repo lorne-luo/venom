@@ -1,7 +1,7 @@
 class BaseHandler():
     subscribes = ()
 
-    def __init__(self, context):
+    def __init__(self, context=None):
         self._context = context
 
     def set_context(self, context):

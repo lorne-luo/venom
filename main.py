@@ -50,6 +50,6 @@ from strategy.rsi_divergence import RSIDivStrategy
 q = Queue(maxsize=2000)
 # d = DebugHandler(q)
 # t = TimeFrameTicker(q)
-s = RSIDivStrategy(q)
+s = RSIDivStrategy()
 r = TimeframeRunner(put_msg, get_msg, 1, *[s])
 r.run()

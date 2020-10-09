@@ -104,13 +104,11 @@ if __name__ == '__main__':
     # how to use
     from strategy.rsi_divergence import RSIDivStrategy
 
-    tf_event = TimeFrameEvent(constants.PERIOD_M5,
+    tf_event = TimeFrameEvent(constants.PERIOD_H1,
                               datetime.utcnow(),
                               datetime.utcnow(),
                               0,
                               datetime.utcnow())
-    import queue
 
-    q = queue.Queue(maxsize=2000)
-    s = RSIDivStrategy(q)
+    s = RSIDivStrategy()
     s.process(tf_event)

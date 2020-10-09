@@ -25,7 +25,7 @@ class StrategyBase(BaseHandler):
     symbols = ()
     subscribes = (TimeFrameEvent.type,)
 
-    def __init__(self, context):
+    def __init__(self, context=None):
         super(StrategyBase, self).__init__(context)
 
         now = get_now(settings.TIMEZONE)
