@@ -39,6 +39,8 @@ class RSIDivStrategy(StrategyBase):
         candle_time = get_candle_time(now, timeframe)
         if self._candle_times[symbol][timeframe] >= candle_time:
             return True
+
+        self._candle_times[symbol][timeframe] = candle_time
         return False
 
     def signal_symbol(self, symbol, event):
@@ -49,10 +51,10 @@ class RSIDivStrategy(StrategyBase):
 
         for timeframe in self.timeframes:
             if self.check_run_history(symbol, timeframe, now):
-                # processed
+                # already processed
                 continue
 
-            delta = calculate_time_delta(timeframe, 55)
+            delta = calculate_time_delta(timeframe, 60)
             from_datetime = to_datetime - delta
             from_timestamp = from_datetime.timestamp()
             timeframe_name = get_timeframe_name(timeframe)
@@ -65,7 +67,8 @@ class RSIDivStrategy(StrategyBase):
 
             newest_index, long_reversal_indexes, long_continue_indexes = long_divergence(df["candle_low"], df["rsi"])
 
-            newest_index, short_reversal_indexes, short_continue_indexes = short_divergence(df["candle_high"], df["rsi"])
+            newest_index, short_reversal_indexes, short_continue_indexes = short_divergence(df["candle_high"],
+                                                                                            df["rsi"])
 
             # print(from_datetime, to_datetime)
             # print(newest_index, long_start_indexes, short_reversal_indexes)
