@@ -7,6 +7,7 @@ from signals.divergence import check_price_cross
 from binance_client.constants import SignalDirection
 from binance_client.configs import get_binance_client
 from binance_client.kline import check_divergence, get_kline_dataframe
+from signals.divergence import long_divergence, short_divergence
 
 
 def test_check_divergence():
@@ -36,14 +37,14 @@ def test_check_divergence_with_real_case():
     low_prices = [min(float(k[1]), float(k[4])) for k in klines]
     high_prices = [max(float(k[1]), float(k[4])) for k in klines]
 
-    rsi13 = talib.RSI(np.array(low_prices), timeperiod=13)
-    result = check_divergence(low_prices, rsi13)
+    rsi = talib.RSI(np.array(low_prices), timeperiod=14)
+    result = check_divergence(low_prices, rsi)
 
     for k in low_prices:
         print(k)
     print(len(klines))
 
-    for r in rsi13:
+    for r in rsi:
         print(r)
 
 
@@ -52,16 +53,24 @@ def test_new():
     end_ts = end_dt.timestamp()  # timestamp in milliseconds
     start_dt = datetime(year=2020, month=9, day=21, hour=10, minute=1) - timedelta(hours=14)
     start_ts = start_dt.timestamp()  # timestamp in milliseconds
-    df = get_kline_dataframe('BTCUSDT', Client.KLINE_INTERVAL_1HOUR, str(start_ts), str(end_ts))
+
+    symbol = 'BTCUSDT'
+    timeframe_name = '1h'
+    df = get_kline_dataframe(symbol, timeframe_name, str(start_ts), str(end_ts))
+
     df["candle_low"] = df[["open", "close"]].min(axis=1)
     df["candle_high"] = df[["open", "close"]].max(axis=1)
-    df["rsi13"] = talib.RSI(df['close'], timeperiod=13)
+    df["rsi"] = talib.RSI(df['close'], timeperiod=14)
+    newest_index, long_start_indexes, long_continue_indexes = long_divergence(df["candle_low"], df["rsi"])
+    assert newest_index == 71
+    assert long_start_indexes == [19]
+    assert long_continue_indexes == []
 
 
 def test_check_price_cross():
-    result = check_price_cross(SignalDirection.SHORT, [20,18,17,16,15,14,13,12,11,10,10])
+    result = check_price_cross(SignalDirection.SHORT, [20, 18, 17, 16, 15, 14, 13, 12, 11, 10, 10])
     assert result == False
-    result = check_price_cross(SignalDirection.SHORT, [20,18,17,16,15,17,13,12,11,10,1])
+    result = check_price_cross(SignalDirection.SHORT, [20, 18, 17, 16, 15, 17, 13, 12, 11, 10, 1])
     assert result == True
 
     result = check_price_cross(SignalDirection.LONG, [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 20])

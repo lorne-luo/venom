@@ -6,7 +6,7 @@ from binance_client.constants import get_timeframe_name
 from binance_client.kline import get_kline_dataframe
 from event.event import SignalEvent, SignalAction, TimeFrameEvent
 from binance_client import constants
-from signals.divergence import long_reversal_divergence, short_reversal_divergence
+from signals.divergence import long_divergence, short_divergence
 from strategy.base import StrategyBase
 from utils.time import calculate_time_delta, get_candle_time, get_now
 from antman.telstra import send_to_admin
@@ -23,7 +23,8 @@ class RSIDivStrategy(StrategyBase):
     magic_number = '20201005'
     source = 'https://www.babypips.com/trading/forex-hlhb-system-20190128'
 
-    timeframes = sorted((constants.PERIOD_M30,
+    timeframes = sorted((constants.PERIOD_M15,
+                         constants.PERIOD_M30,
                          constants.PERIOD_H1,
                          constants.PERIOD_H4,
                          constants.PERIOD_D1),
@@ -60,42 +61,68 @@ class RSIDivStrategy(StrategyBase):
             df = get_kline_dataframe(symbol, timeframe_name, str(from_timestamp), str(to_timestamp))
             df["candle_low"] = df[["open", "close"]].min(axis=1)
             df["candle_high"] = df[["open", "close"]].max(axis=1)
-            df["rsi13"] = talib.RSI(df['close'], timeperiod=13)
+            df["rsi"] = talib.RSI(df['close'], timeperiod=14)
 
-            newest_index, long_start_indexes = long_reversal_divergence(df["candle_low"], df["rsi13"])
+            newest_index, long_start_indexes, long_continue_indexes = long_divergence(df["candle_low"], df["rsi"])
 
-            newest_index, short_start_indexes = short_reversal_divergence(df["candle_high"], df["rsi13"])
+            newest_index, short_start_indexes, short_continue_indexes = short_divergence(df["candle_high"], df["rsi"])
 
             # print(from_datetime, to_datetime)
             # print(newest_index, long_start_indexes, short_start_indexes)
 
-            if long_start_indexes or short_start_indexes:
-                newest_price = df.loc[len(df) - 1].close
-                msg_title = f'{timeframe}|{datetime.now().strftime("%H:%M")},{symbol.replace("USDT","")},{self.name}@{newest_price}'
-                self.send_sms(df, msg_title, long_start_indexes, short_start_indexes)
-            else:
-                return
+            newest_price = df.loc[len(df) - 1].close
+            if long_start_indexes or short_start_indexes or long_continue_indexes or short_continue_indexes:
+                msg_title = f'{timeframe}|{datetime.now().strftime("%H:%M")},{symbol.replace("USDT","")},{self.name}@{newest_price},R'
+                self.send_sms(df, msg_title,
+                              long_start_indexes, short_start_indexes,
+                              long_continue_indexes, short_continue_indexes)
 
-    def send_sms(self, df, msg_title, long_start_indexes, short_start_indexes):
+    def send_sms(self, df, msg_title,
+                 long_start_indexes, short_start_indexes,
+                 long_continue_indexes, short_continue_indexes):
+        to_index = len(df) - 3
 
         if long_start_indexes:
             from_index = long_start_indexes[0]
-            to_index = len(df) - 3
-            msg = f'''{msg_title},L
-{df.loc[from_index].open_time.strftime('%m-%d %H:%M')} > {df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
+            msg = f'''{msg_title},RL
+{df.loc[from_index].open_time.strftime('%m-%d %H:%M')}-{df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
 {df.loc[from_index].candle_low} \ {df.loc[to_index].candle_low}
-{df.loc[from_index].rsi13:.2f}    / {df.loc[to_index].rsi13:.2f}
+{df.loc[from_index].rsi:.2f} / {df.loc[to_index].rsi:.2f}
 '''
+            print(datetime.now())
             print(msg)
             send_to_admin(msg)
+
         if short_start_indexes:
             from_index = short_start_indexes[0]
-            to_index = len(df) - 3
-            msg = f'''{msg_title},S
-{df.loc[from_index].open_time.strftime('%m-%d %H:%M')} > {df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
+            msg = f'''{msg_title},RS
+{df.loc[from_index].open_time.strftime('%m-%d %H:%M')}-{df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
 {df.loc[from_index].candle_high} / {df.loc[to_index].candle_high}
-{df.loc[from_index].rsi13:.2f}    \ {df.loc[to_index].rsi13:.2f}
+{df.loc[from_index].rsi:.2f} \ {df.loc[to_index].rsi:.2f}
 '''
+            print(datetime.now())
+            print(msg)
+            send_to_admin(msg)
+
+        if long_continue_indexes:
+            from_index = long_continue_indexes[0]
+            msg = f'''{msg_title},CL
+{df.loc[from_index].open_time.strftime('%m-%d %H:%M')}-{df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
+{df.loc[from_index].candle_low} / {df.loc[to_index].candle_low}
+{df.loc[from_index].rsi:.2f} \ {df.loc[to_index].rsi:.2f}
+'''
+            print(datetime.now())
+            print(msg)
+            send_to_admin(msg)
+
+        if short_continue_indexes:
+            from_index = short_continue_indexes[0]
+            msg = f'''{msg_title},CS
+{df.loc[from_index].open_time.strftime('%m-%d %H:%M')}-{df.loc[to_index].open_time.strftime('%m-%d %H:%M')}
+{df.loc[from_index].candle_high} \ {df.loc[to_index].candle_high}
+{df.loc[from_index].rsi:.2f} / {df.loc[to_index].rsi:.2f}
+'''
+            print(datetime.now())
             print(msg)
             send_to_admin(msg)
 
