@@ -48,7 +48,7 @@ def test_check_divergence_with_real_case():
         print(r)
 
 
-def test_new():
+def test_reversal_divergence():
     end_dt = datetime(year=2020, month=9, day=23, hour=22, minute=1)
     end_ts = end_dt.timestamp()  # timestamp in milliseconds
     start_dt = datetime(year=2020, month=9, day=21, hour=10, minute=1) - timedelta(hours=14)
@@ -57,14 +57,34 @@ def test_new():
     symbol = 'BTCUSDT'
     timeframe_name = '1h'
     df = get_kline_dataframe(symbol, timeframe_name, str(start_ts), str(end_ts))
-
     df["candle_low"] = df[["open", "close"]].min(axis=1)
     df["candle_high"] = df[["open", "close"]].max(axis=1)
     df["rsi"] = talib.RSI(df['close'], timeperiod=14)
+
     newest_index, long_start_indexes, long_continue_indexes = long_divergence(df["candle_low"], df["rsi"])
     assert newest_index == 71
     assert long_start_indexes == [19]
     assert long_continue_indexes == []
+
+
+def test_continue_divergence():
+    end_dt = datetime(year=2020, month=10, day=10, hour=13, minute=55)
+    end_ts = end_dt.timestamp()
+    start_dt = end_dt - timedelta(hours=7)
+    start_ts = start_dt.timestamp()
+
+    symbol = 'BTCUSDT'
+    timeframe_name = '5m'
+    df = get_kline_dataframe(symbol, timeframe_name, str(start_ts), str(end_ts))
+
+    df["candle_low"] = df[["open", "close"]].min(axis=1)
+    df["candle_high"] = df[["open", "close"]].max(axis=1)
+    df["rsi"] = talib.RSI(df['close'], timeperiod=14)
+
+    newest_index, short_start_indexes, short_continue_indexes = short_divergence(df["candle_high"], df["rsi"])
+    assert newest_index == 82
+    assert short_start_indexes == []
+    assert short_continue_indexes == [32, 25]
 
 
 def test_check_price_cross():
