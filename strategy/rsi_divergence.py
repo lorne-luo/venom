@@ -63,18 +63,18 @@ class RSIDivStrategy(StrategyBase):
             df["candle_high"] = df[["open", "close"]].max(axis=1)
             df["rsi"] = talib.RSI(df['close'], timeperiod=14)
 
-            newest_index, long_start_indexes, long_continue_indexes = long_divergence(df["candle_low"], df["rsi"])
+            newest_index, long_reversal_indexes, long_continue_indexes = long_divergence(df["candle_low"], df["rsi"])
 
-            newest_index, short_start_indexes, short_continue_indexes = short_divergence(df["candle_high"], df["rsi"])
+            newest_index, short_reversal_indexes, short_continue_indexes = short_divergence(df["candle_high"], df["rsi"])
 
             # print(from_datetime, to_datetime)
-            # print(newest_index, long_start_indexes, short_start_indexes)
+            # print(newest_index, long_start_indexes, short_reversal_indexes)
 
             newest_price = df.loc[len(df) - 1].close
-            if long_start_indexes or short_start_indexes or long_continue_indexes or short_continue_indexes:
+            if long_reversal_indexes or short_reversal_indexes or long_continue_indexes or short_continue_indexes:
                 msg_title = f'{timeframe}|{datetime.now().strftime("%H:%M")},{symbol.replace("USDT","")},{self.name}@{newest_price},R'
                 self.send_sms(df, msg_title,
-                              long_start_indexes, short_start_indexes,
+                              long_reversal_indexes, short_reversal_indexes,
                               long_continue_indexes, short_continue_indexes)
 
     def send_sms(self, df, msg_title,

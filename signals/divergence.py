@@ -18,8 +18,8 @@ def short_divergence(prices, indicators):
     if len(rsi_max_indexes) < 2:
         return current_index, []
 
-    reversal_indexes = []
-    continue_indexes = []
+    reversal_start_indexes = []
+    continue_start_indexes = []
     # short divergence
     if rsi_max_indexes[-1] == current_index:
         for i in range(-2, -1 * (len(rsi_max_indexes) + 1), -1):
@@ -28,18 +28,18 @@ def short_divergence(prices, indicators):
             if current_index - rsi_max_indexes[i] < 4:
                 continue  # too close
 
-            # reversal divergence
+            # short reversal divergence
             if prices[current_index] > prices[rsi_max_indexes[i]] and \
                     indicators[current_index] < indicators[rsi_max_indexes[i]]:
                 if not check_price_cross(SignalDirection.SHORT, prices[rsi_max_indexes[i]:current_index + 1]):
-                    reversal_indexes.append(rsi_max_indexes[i])
+                    reversal_start_indexes.append(rsi_max_indexes[i])
 
-            # continue divergence
+            # hidden continue divergence
             if prices[current_index] < prices[rsi_max_indexes[i]] and \
                     indicators[current_index] > indicators[rsi_max_indexes[i]]:
                 if not check_price_cross(SignalDirection.SHORT, prices[rsi_max_indexes[i]:current_index + 1]):
-                    reversal_indexes.append(rsi_max_indexes[i])
-    return current_index, reversal_indexes, continue_indexes
+                    continue_start_indexes.append(rsi_max_indexes[i])
+    return current_index, reversal_start_indexes, continue_start_indexes
 
 
 def long_divergence(prices, indicators):
@@ -70,7 +70,7 @@ def long_divergence(prices, indicators):
                 if not check_price_cross(SignalDirection.LONG, prices[rsi_min_indexes[i]:current_index + 1]):
                     reversal_start_indexes.append(rsi_min_indexes[i])
 
-            # long continue divergence
+            # hidden continue divergence
             if prices[current_index] > prices[rsi_min_indexes[i]] and \
                     indicators[current_index] < indicators[rsi_min_indexes[i]]:
                 if not check_price_cross(SignalDirection.LONG, prices[rsi_min_indexes[i]:current_index + 1]):
