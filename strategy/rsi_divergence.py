@@ -23,8 +23,7 @@ class RSIDivStrategy(StrategyBase):
     magic_number = '20201005'
     source = 'https://www.babypips.com/trading/forex-hlhb-system-20190128'
 
-    timeframes = sorted((constants.PERIOD_M15,
-                         constants.PERIOD_M30,
+    timeframes = sorted((constants.PERIOD_M30,
                          constants.PERIOD_H1,
                          constants.PERIOD_H4,
                          constants.PERIOD_D1),
@@ -75,7 +74,7 @@ class RSIDivStrategy(StrategyBase):
 
             newest_price = df.loc[len(df) - 1].close
             if long_reversal_indexes or short_reversal_indexes or long_continue_indexes or short_continue_indexes:
-                msg_title = f'{timeframe}|{datetime.now().strftime("%H:%M")},{symbol.replace("USDT","")},{self.name}@{newest_price},R'
+                msg_title = f'{timeframe}|{datetime.now().strftime("%H:%M")},{symbol.replace("USDT","")},{self.name}@{newest_price}'
                 self.send_sms(df, msg_title,
                               long_reversal_indexes, short_reversal_indexes,
                               long_continue_indexes, short_continue_indexes)
