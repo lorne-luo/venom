@@ -36,11 +36,10 @@ class RSIDivStrategy(StrategyBase):
         """True already run ,skip
         False doesnt run, go ahead"""
         candle_time = get_candle_time(now, timeframe)
-        if self._candle_times[symbol][timeframe] >= candle_time:
-            return True
 
-        self._candle_times[symbol][timeframe] = candle_time
-        return False
+        if candle_time > self._candle_times[symbol][timeframe]:
+            return False
+        return True
 
     def signal_symbol(self, symbol, event):
         to_datetime = datetime.utcnow()
@@ -60,6 +59,13 @@ class RSIDivStrategy(StrategyBase):
 
             # get dataframe
             df = get_kline_dataframe(symbol, timeframe_name, str(from_timestamp), str(to_timestamp))
+            newest_candle_time = df.loc[len(df) - 1].open_time
+            if newest_candle_time > self._candle_times[symbol][timeframe]:
+                self._candle_times[symbol][timeframe] = newest_candle_time.to_pydatetime()
+            else:
+                # candle not update yet, skip
+                continue
+
             df["candle_low"] = df[["open", "close"]].min(axis=1)
             df["candle_high"] = df[["open", "close"]].max(axis=1)
             df["rsi"] = talib.RSI(df['close'], timeperiod=14)
